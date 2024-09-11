@@ -1,8 +1,10 @@
 int x = 10;
 int y = 10;
 boolean Switch = false;
+
 while (Switch == false)
 {
+  
 while (x <= 500) 
 {
   float xRandom = random(9);
@@ -18,6 +20,7 @@ while (x <= 500)
    windowResize(x, y);
    println(x + " Addition " + y);
 }
+
 if (x >= 500)
  {
    while(x >= 20)
@@ -32,6 +35,7 @@ if (x >= 500)
    if(x <= 10)
    {
      x = 10;
+     y = 10;
    }
    
     windowResize(x, y);

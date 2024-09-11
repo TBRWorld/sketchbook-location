@@ -1,13 +1,13 @@
-size(500, 500);
+size(800, 800);
 background(0, 0, 0);
 
-float xStartPoint = 240;
-float yStartPoint = 240;
+float xStartPoint = 400;
+float yStartPoint = 200;
 
-int dotAmount = 2;
-float radius = 50;
+int dotAmount = 360;
+float radius = 100;
 
-int dotMultiplier = dotAmount * 4;
+int dotMultiplier = dotAmount * 2;
 float[] circle = new float[dotMultiplier];
 
 //float degree = (360 / dotAmount) * 2;
@@ -25,7 +25,7 @@ while (loopKill == false)
   circle[i] = xStartPoint + radius * cos(theta);
   //println("circle1: " + circle[i]);
   i++;
-  circle[i] = xStartPoint + radius * sin(theta);
+  circle[i] = yStartPoint + radius * sin(theta);
   //println("circle2: " + circle[i]);
   i++;
   theta += thetaMultiplier;
@@ -38,7 +38,6 @@ while (loopKill == false)
 
 fill(255, 255, 255);
 rect(xStartPoint, yStartPoint, 10, 10);
-
 
 
 i = 0;
@@ -65,11 +64,11 @@ while(loopKill == false)
   x2 += 2;
   y2 += 2;
   i++;  
-  if(i == dotAmount * 2 - 1)
+  if(i == dotAmount - 1)
   {
     x2 -= 2;
     y2 -= 2;
-    line(circle[0], circle[1], circle[x2], circle[y2]);
+   line(circle[0], circle[1], circle[x2], circle[y2]);
     loopKill = true;
   }
   

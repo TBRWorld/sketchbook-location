@@ -3,17 +3,17 @@ background(135, 206, 235);
 
 //background
 fill(56, 128, 4);
-rect(0, 450, 1000, 450);
+rect(0, 450, 1000, 550);
 fill(255, 223, 34);
 ellipse(800, 100, 250, 250);
 
 //grass???
 stroke(124, 252, 0);
 int i = 0;
-while(i != 3000)
+while(i != 1000)
 {
   float x = random(0, 1000);
-  float y = random(450, 900);
+  float y = random(450, 1000);
   line(x, y, x + 5, y - 20);
   i++;
 }
