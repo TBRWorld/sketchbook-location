@@ -1,11 +1,11 @@
-size(800, 800);
+size(1000, 1000);
 background(0, 0, 0);
 
 float xStartPoint = 400;
-float yStartPoint = 200;
+float yStartPoint = 400;
 
-int dotAmount = 360;
-float radius = 100;
+int dotAmount = 10000;
+float radius = 500;
 
 int dotMultiplier = dotAmount * 2;
 float[] circle = new float[dotMultiplier];
