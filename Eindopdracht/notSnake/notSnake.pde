@@ -1,27 +1,34 @@
 /*
-- Start animation
-  -2.1 Make it a Pgraphic and call image every time something needs to be changed.
-     -2.2 Make sure it updates properly
-  -3 Get it to switch to regular game after the animation is over
-- render head
-- Make movement
-- Make everything a Pgraphic.
+- render head X
+- Make movement X
+  2. Standard movement X
+  2.1 Add framework for mouse movement X
+  2.2 Move with wasd X
+- Make everything a Pgraphic. X
 - Add tail
 - Add grow points
-- add a menu initializer
 - Add window resize
 - Add proper mouse movement.
+- Add menu initialising thingy
 - Add enemies
 - Add dungeon
 */
 boolean start = true;
+
+PGraphics GameGraph;
 
 float windowMidPointX = width / 2;
 float windowMidPointY = height / 2;
 
 boolean startLoading = true;
 
+float playerHeadX;
+float playerHeadY;
 
+float angle = 0;
+
+//maak floatList!
+float[] playerTail;
 
 void setup() {
   size(10, 10);
@@ -29,77 +36,87 @@ void setup() {
   boolean start = true;
   if(start==true) {
     windowMove(0,0);
-    windowResize(displayWidth - 200, displayHeight - 200);
+    windowResize(500, 500);
   }
+  
+  GameGraph = createGraphics(displayWidth, displayHeight); GameGraph.beginDraw();
+  GameGraph.background(25);
+  GameGraph.endDraw();
+  
+  playerHeadX = width/2;
+  playerHeadY = height/2;
 }
 
 void draw() {
-  startUp();
+  background(25);
+  drawPlayer();
   
 }
-void startUp() {
-  float windowMidPointX = width / 2;
-  float windowMidPointY = height / 2;
+
+void keyPressed() {
+ switch(key){
+  case 'd':
+  angle = 0;
+  break;
+  case 'a':
+  angle = 180;
+  break;
+  case 's':
+  angle = 90;
+  break;
+  case 'w':
+  angle = 270;
+  break;
+ }
+}
+
+
+void drawPlayer() {
+  //add angle later
+  PlayerSnake Player = new PlayerSnake();
+  Player.direction();
+  Player.playerHead();
+  image(GameGraph, 0, 0);
+}
+
+
+
+
+class PlayerSnake {
   
-  float titleSize = 100;
   
-  int gameWindowMinX = displayWidth / 5;
-  int gameWindowMinY = displayHeight / 5;
+ // PlayerSnake(float angle) {
+ //   this.angle = angle;
+ // }
+  boolean startTail = true;
   
-  boolean LoadingToGame = false;
+  float xMult = 0;
+  float yMult = 0;
   
-  int i = 0;
-  
-  
-  while(startLoading == true) {
-    textAlign(CENTER); 
-    textSize(titleSize);
-    fill(255);
-    stroke(255);
-    
-    text("NOT SNAKE", windowMidPointX, windowMidPointY);
-    println(windowMidPointX, windowMidPointY, i);
-    delay(200);
-    i++;
-    
-    
-    if(i == 30) {
-      startLoading = false;
-      LoadingToGame = true;
-      //println("startLoading == false");
-    }  
+  void playerHead() {
+    GameGraph.beginDraw();
+    GameGraph.background(25);
+    GameGraph.ellipse(playerHeadX, playerHeadY, 70, 70);
+    GameGraph.endDraw();
   }
   
-  float titleSizeMath = titleSize;
-  
-  while(LoadingToGame == true) {
-    //println("LoadingToGame aka resizing");
-    background(25);
-    boolean switch1 = false;
-    boolean switch2 = false;
+  void direction() {
+    xMult = 3.5 * cos(angle * PI / 180);
+    yMult = 3.5 * sin(angle * PI / 180);   
     
-    float titleDivider = 1500 / titleSizeMath;
-    titleSize -= titleDivider;
-    textSize(titleSize);
-    text("NOT SNAKE", windowMidPointX, windowMidPointY);
-    
-    float screenDividerX = 150 / (width + gameWindowMinX);
-    float screenDividerY = 150 / (height + gameWindowMinY);
-    delay(200);
-    windowResize(int(width - screenDividerX), int(height - screenDividerY));
-    
-    if(switch1 && switch2) {
-      windowResize(gameWindowMinX, gameWindowMinY);
-      LoadingToGame = false;
-    }
-    else if(titleSize <= 0) {
-      switch1 = true;
-      println("switch1");
-    }
-    
-    else if(width <= gameWindowMinX + screenDividerX || height <= gameWindowMinY + screenDividerY) {
-      switch2 = true;
-      println("switch2");
-    }
+    playerHeadX += xMult;
+    playerHeadY += yMult;
   }
+  
+  void playerTail() {
+    if (startTail == true)
+    {
+      
+    }
+    
+    
+  }
+  
+  
+  
 }
