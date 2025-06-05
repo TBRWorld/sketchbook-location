@@ -33,12 +33,12 @@ float playerHeadY;
 float playerAngle = 0;
 int playerSlowness = 5;
 int playerBallSize = 40;
-int playerSpeed;
+float playerSpeed;
 
 PlayerSnake Player;
 
 void setup() {
-  size(500, 500);
+  size(1200, 800);
   background(25);
   
   //set up the draw graphic for the game
@@ -61,16 +61,16 @@ void draw() {
 void keyPressed() {
   switch(key) {
   case 'd':
-    playerAngle = 0;
+    playerAngle += playerSpeed * 1.5;
     break;
   case 'a':
-    playerAngle = 180;
+    playerAngle -= playerSpeed * 1.5;
     break;
   case 's':
-    playerAngle = 90;
+    //playerAngle = 90;
     break;
   case 'w':
-    playerAngle = 270;
+    //playerAngle = 270;
     break;
   }
 }
@@ -78,6 +78,7 @@ void keyPressed() {
 //draw the game
 void drawGame() {
   GameGraph.beginDraw();
+  GameGraph.background(25);
   if(start == true) initialize(); //spawn the player first
   else runGame();
   if(dead == true) gameOver();
@@ -90,7 +91,7 @@ void initialize() {
   playerAngle = 0;
   playerHeadX = width/2;
   playerHeadY = height/2;
-  playerSpeed = playerBallSize / 2 / playerSlowness;
+  playerSpeed = playerBallSize / 1.5 / playerSlowness;
   
   Player.spawn();
   start = false;
@@ -98,11 +99,9 @@ void initialize() {
 
 void runGame() {
   //calculate new point
-  Player.newDirPoint();
+  Player.newPoints();
   //move all the values
   Player.move();
-  //draw the player
-  //remove old point
 }
 
 void gameOver() {
@@ -130,7 +129,7 @@ class PlayerSnake {
     }
     
     //initialize player 
-    for(int i = playerPoints.size() - 6; i >= 0; i -= playerSlowness)
+    for(int i = playerPoints.size() - playerSlowness - 1; i >= 0; i -= playerSlowness)
     {      
       Points currentPoint = playerPoints.get(i);
       playerBody.add(new PlayerBody(currentPoint.xPos, currentPoint.yPos));
@@ -141,23 +140,41 @@ class PlayerSnake {
     playerHead();
   }
   
-  void newDirPoint() {
+  void newPoints() {
     //fetch last point
     Points currentPoint = playerPoints.get(playerPoints.size()-1);
-    println("currentPoint: " + currentPoint.xPos);
     
     //fetch angle (currently testing circle
-    playerAngle += playerSpeed;
+    //playerAngle += playerSpeed * 1.5;
     
     //use direction method using the angle
     float[] multiplier = direction(playerAngle, playerSpeed);
     
     //add it to the list
     playerPoints.add(new Points(currentPoint.xPos + multiplier[0], currentPoint.yPos + multiplier[1]));
+    
+    //remove old points
+    trimOldPoints();
   }
   
+  void trimOldPoints() {
+  int maxPoints = (tailSize + 2) * playerSlowness + 1;
+
+  while (playerPoints.size() > maxPoints) {
+    playerPoints.remove(0);
+  }
+}
+  
   void move() {
-    for(int i = playerPoints.size() - 6; i >= 0; i -= playerSlowness) println(i);
+    for(int i = playerPoints.size() - 6; i >= 0; i -= playerSlowness)
+    {
+      Points currentPoint = playerPoints.get(i);
+      playerBody.add(new PlayerBody(currentPoint.xPos, currentPoint.yPos));
+      
+      playerTail(currentPoint.xPos, currentPoint.yPos);
+      if(i == playerPoints.size() - 6) { playerHeadX = currentPoint.xPos; playerHeadY = currentPoint.yPos; }
+    }
+    playerHead();
   }
 
   void playerHead() {
