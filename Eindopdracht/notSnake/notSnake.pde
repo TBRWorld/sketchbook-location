@@ -79,7 +79,7 @@ void keyPressed() {
 void drawGame() {
   GameGraph.beginDraw();
   if(start == true) initialize(); //spawn the player first
-  runGame();
+  else runGame();
   if(dead == true) gameOver();
   
   GameGraph.endDraw();
@@ -90,14 +90,19 @@ void initialize() {
   playerAngle = 0;
   playerHeadX = width/2;
   playerHeadY = height/2;
-  playerSpeed = playerBallSize / playerSlowness;
+  playerSpeed = playerBallSize / 2 / playerSlowness;
   
   Player.spawn();
   start = false;
 }
 
 void runGame() {
-  
+  //calculate new point
+  Player.newDirPoint();
+  //move all the values
+  Player.move();
+  //draw the player
+  //remove old point
 }
 
 void gameOver() {
@@ -105,10 +110,6 @@ void gameOver() {
 }
 
 class PlayerSnake {
-
-  float lastXPos = 0;
-  float lastYPos = 0;
-
   ArrayList<Points> playerPoints = new ArrayList<Points>(); //1 is tail end, last is movement point, second to last is head.
   ArrayList<PlayerBody> playerBody = new ArrayList<PlayerBody>();  //1 is head, last is tail end
   int tailSize = 5;
@@ -117,37 +118,55 @@ class PlayerSnake {
     tailSize = 5;
     
     //initialize Points
-    float x = playerHeadX - tailSize * playerBallSize;
+    float x = playerHeadX - (tailSize + 1) * (playerBallSize / 2);
     float y = playerHeadY;
     float pointCounter = (tailSize + 2) * playerSlowness;
     println("x = " + x + " pointCounter = " + pointCounter);
-    for (int i = 1; i <= pointCounter; i++)
+    for (int i = 0; i <= pointCounter; i++)
     {
       playerPoints.add(new Points(x, y));
+      println("i:" + i + " x:" + x);
       x += playerSpeed;
-      println(i);
     }
     
-    //initialize player
-    playerHead(); 
-    int counter = 0;
-    for(int i = playerPoints.size() - 6; i >= 0; i -= playerSlowness) //current problem: Distance needs to be half the size, need to make sure to exclude the head and movement point
-    {
+    //initialize player 
+    for(int i = playerPoints.size() - 6; i >= 0; i -= playerSlowness)
+    {      
       Points currentPoint = playerPoints.get(i);
       playerBody.add(new PlayerBody(currentPoint.xPos, currentPoint.yPos));
       
-      counter++;
-      println("playerBody[" + counter + "]: xy: " + currentPoint.xPos + ", " + currentPoint.yPos);
-      
-      if(counter <= tailSize)  playerTailMethod(currentPoint.xPos, currentPoint.yPos);
+      println("playerBody[" + i + "]: xy: " + currentPoint.xPos + ", " + currentPoint.yPos);
+      playerTail(currentPoint.xPos, currentPoint.yPos);
     }
+    playerHead();
+  }
+  
+  void newDirPoint() {
+    //fetch last point
+    Points currentPoint = playerPoints.get(playerPoints.size()-1);
+    println("currentPoint: " + currentPoint.xPos);
+    
+    //fetch angle (currently testing circle
+    playerAngle += playerSpeed;
+    
+    //use direction method using the angle
+    float[] multiplier = direction(playerAngle, playerSpeed);
+    
+    //add it to the list
+    playerPoints.add(new Points(currentPoint.xPos + multiplier[0], currentPoint.yPos + multiplier[1]));
+  }
+  
+  void move() {
+    for(int i = playerPoints.size() - 6; i >= 0; i -= playerSlowness) println(i);
   }
 
   void playerHead() {
+    GameGraph.fill(255, 1, 1);
     GameGraph.ellipse(playerHeadX, playerHeadY, playerBallSize, playerBallSize);
+    GameGraph.fill(255, 255, 255);
   }
   
-  void playerTailMethod(float x, float y) {
+  void playerTail(float x, float y) {
     GameGraph.ellipse(x, y, playerBallSize, playerBallSize);
   }
 }
@@ -173,10 +192,10 @@ class PlayerBody {
 }
 
 float[] direction(float angle, float radius) {
-   float xMult = radius * cos(angle * PI / 180);
-   float yMult = radius * sin(angle * PI / 180);
+   float x = radius * cos(angle * PI / 180);
+   float y = radius * sin(angle * PI / 180);
 
-   float[] coordsMult = {xMult, yMult};
+   float[] coordsMult = {x, y};
 
    return coordsMult;
   }
