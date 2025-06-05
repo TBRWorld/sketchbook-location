@@ -67,10 +67,12 @@ void keyPressed() {
     playerAngle -= playerSpeed * 1.5;
     break;
   case 's':
-    //playerAngle = 90;
+    playerSlowness += 1;
+    start = true;
     break;
   case 'w':
-    //playerAngle = 270;
+    playerSlowness -= 1;
+    start = true;
     break;
   }
 }
@@ -98,13 +100,19 @@ void initialize() {
 }
 
 void runGame() {
+  //calculate playerAngle
+  angleLogic();
   //calculate new point
   Player.newPoints();
-  //move all the values
+  //move and draw
   Player.move();
 }
 
 void gameOver() {
+  
+}
+
+void angleLogic() {
   
 }
 
@@ -143,9 +151,6 @@ class PlayerSnake {
   void newPoints() {
     //fetch last point
     Points currentPoint = playerPoints.get(playerPoints.size()-1);
-    
-    //fetch angle (currently testing circle
-    //playerAngle += playerSpeed * 1.5;
     
     //use direction method using the angle
     float[] multiplier = direction(playerAngle, playerSpeed);
@@ -215,12 +220,4 @@ float[] direction(float angle, float radius) {
    float[] coordsMult = {x, y};
 
    return coordsMult;
-  }
-
-float reverseAngle(float angle) {
-   if (angle <= 180) angle += 180;
-   else if (angle >= 180) angle -= 180;
-   else if (angle == 180) angle = 0;
-
-   return angle;
   }
