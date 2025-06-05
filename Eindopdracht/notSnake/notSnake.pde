@@ -22,16 +22,18 @@
  - Add enemies
  - Add dungeon
  */
-boolean start = true;
+Boolean start = true;
+boolean dead = false;
 
 PGraphics GameGraph;
-
-boolean startLoading = true;
 
 float playerHeadX;
 float playerHeadY;
 
 float playerAngle = 0;
+int playerSlowness = 5;
+int playerBallSize = 40;
+int playerSpeed;
 
 PlayerSnake Player;
 
@@ -39,14 +41,7 @@ void setup() {
   size(500, 500);
   background(25);
   
-  
-  boolean start = true;
-  /*if (start==true) {
-    windowMove(0, 0);
-    windowResize(500, 500);
-  }*/
-  
-
+  //set up the draw graphic for the game
   GameGraph = createGraphics(displayWidth, displayHeight);
   GameGraph.beginDraw();
   GameGraph.background(25);
@@ -60,7 +55,7 @@ void setup() {
 
 void draw() {
   background(25);
-  drawPlayer();
+  drawGame();
 }
 
 void keyPressed() {
@@ -80,128 +75,101 @@ void keyPressed() {
   }
 }
 
-
-void drawPlayer() {
-  Player.playerHead();
-  Player.playerTailMethod();
+//draw the game
+void drawGame() {
+  GameGraph.beginDraw();
+  if(start == true) initialize(); //spawn the player first
+  runGame();
+  if(dead == true) gameOver();
   
   GameGraph.endDraw();
   image(GameGraph, 0, 0);
 }
 
+void initialize() {
+  playerAngle = 0;
+  playerHeadX = width/2;
+  playerHeadY = height/2;
+  playerSpeed = playerBallSize / playerSlowness;
+  
+  Player.spawn();
+  start = false;
+}
+
+void runGame() {
+  
+}
+
+void gameOver() {
+  
+}
 
 class PlayerSnake {
 
-  float xHeadMult = 0;
-  float yHeadMult = 0;
   float lastXPos = 0;
   float lastYPos = 0;
-  float lastXDir = 0;
-  float lastYDir = 0;
 
-  ArrayList<Tail> playerTail = new ArrayList<Tail>();
+  ArrayList<Points> playerPoints = new ArrayList<Points>(); //1 is tail end, last is movement point, second to last is head.
+  ArrayList<PlayerBody> playerBody = new ArrayList<PlayerBody>();  //1 is head, last is tail end
   int tailSize = 5;
-
+  
+  void spawn() {
+    tailSize = 5;
+    
+    //initialize Points
+    float x = playerHeadX - tailSize * playerBallSize;
+    float y = playerHeadY;
+    float pointCounter = (tailSize + 2) * playerSlowness;
+    println("x = " + x + " pointCounter = " + pointCounter);
+    for (int i = 1; i <= pointCounter; i++)
+    {
+      playerPoints.add(new Points(x, y));
+      x += playerSpeed;
+      println(i);
+    }
+    
+    //initialize player
+    playerHead(); 
+    int counter = 0;
+    for(int i = playerPoints.size() - 6; i >= 0; i -= playerSlowness) //current problem: Distance needs to be half the size, need to make sure to exclude the head and movement point
+    {
+      Points currentPoint = playerPoints.get(i);
+      playerBody.add(new PlayerBody(currentPoint.xPos, currentPoint.yPos));
+      
+      counter++;
+      println("playerBody[" + counter + "]: xy: " + currentPoint.xPos + ", " + currentPoint.yPos);
+      
+      if(counter <= tailSize)  playerTailMethod(currentPoint.xPos, currentPoint.yPos);
+    }
+  }
 
   void playerHead() {
-    GameGraph.beginDraw();
-    GameGraph.background(25);
-    
-    float[] coordsMult = direction(playerAngle, 2.5);
-    lastXPos = playerHeadX;
-    lastYPos = playerHeadY;
-    lastXDir = coordsMult[0];
-    lastYDir = coordsMult[1];
-    playerHeadX += coordsMult[0];
-    playerHeadY += coordsMult[1];
-    
-    GameGraph.ellipse(playerHeadX, playerHeadY, 40, 40);
+    GameGraph.ellipse(playerHeadX, playerHeadY, playerBallSize, playerBallSize);
   }
   
-  void playerTailMethod() {
-    //move tail
-    //Check if there is a tail to begin with
-    if (playerTail.size() > 0) 
-    {
-      //Repeat the following code for every part of the tail (last to first)
-      for (int i = playerTail.size()-1; i >= 0; i--)
-      {
-        Tail currentTail = playerTail.get(i);
-        //if it's the first part of the tail use the head data
-        if(i == 0)
-        { 
-          currentTail.setDir(lastXDir, lastYDir);
-        }
-        else //else use the last part of the tail
-        {
-          Tail lastTail = playerTail.get(i-1);
-          
-          currentTail.setDir(lastTail.xDir, lastTail.yDir);
-        }  
-        //move after changing the dir
-        currentTail.move();
-      }
-    }
-     
-  //spawn 1 tailball if needed
-    if(playerTail.size() < tailSize)
-    {
-     if(playerTail.size() == 0)
-     {
-       float reverseAngle = (playerAngle + 180) % 360;
-       
-       float[] spawnMult = direction(reverseAngle, 20);
-       
-       playerTail.add(new Tail(lastXPos + spawnMult[0], lastYPos + spawnMult[1], lastXDir, lastYDir));
-     }
-     else
-     {
-       //access last tail
-       println(playerTail.size());
-       Tail lastTail = playerTail.get(playerTail.size()-1);
-       
-       lastXPos = lastTail.xPos;
-       lastYPos = lastTail.yPos;     
-       lastXDir = lastTail.xDir;
-       lastYDir = lastTail.yDir;
-       
-       float spawnXMult = lastXDir / 2.5 * 20;
-       float spawnYMult = lastYDir / 2.5 * 20;
-       
-       playerTail.add(new Tail(lastXPos + spawnXMult, lastYPos + spawnYMult, lastXDir, lastYDir));
-     }
-    }
+  void playerTailMethod(float x, float y) {
+    GameGraph.ellipse(x, y, playerBallSize, playerBallSize);
   }
 }
 
-class Tail {
+class Points {
  float xPos;
  float yPos;
- float xDir;
- float yDir;
  
- Tail(float xPos, float yPos, float xDir, float yDir) {
+ Points(float xPos, float yPos) {
   this.xPos = xPos;
   this.yPos = yPos;
-  this.xDir = xDir;
-  this.yDir = yDir;
- }
+ } 
+}
+
+class PlayerBody {
+ float xPos;
+ float yPos;
  
- void setDir(float newXDir, float newYDir) 
- {
-   xDir = newXDir;
-   yDir = newYDir;
- }
- 
- void move() 
- {
-  xPos += xDir;
-  yPos += yDir;
-   
-  GameGraph.ellipse(xPos, yPos, 40, 40); 
-  playerAngle += 0.3;
- }
- 
+ PlayerBody(float xPos, float yPos) {
+  this.xPos = xPos;
+  this.yPos = yPos;
+ } 
 }
 
 float[] direction(float angle, float radius) {
