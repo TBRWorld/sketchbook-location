@@ -37,9 +37,13 @@ float playerSpeed;
 
 PlayerSnake Player;
 
+boolean fruitExists = false;
+float[] fruitCoords = {0, 0};
+
 void setup() {
-  size(1200, 800);
+  size(500, 500);
   background(25);
+  //noCursor();
   
   //set up the draw graphic for the game
   GameGraph = createGraphics(displayWidth, displayHeight);
@@ -67,11 +71,11 @@ void keyPressed() {
     playerAngle -= playerSpeed * 1.5;
     break;
   case 's':
-    playerSlowness += 1;
-    start = true;
+    Player.tailSize += 1;
+   // start = true;
     break;
   case 'w':
-    playerSlowness -= 1;
+    //Player.tailSize -= 1;
     start = true;
     break;
   }
@@ -106,6 +110,9 @@ void runGame() {
   Player.newPoints();
   //move and draw
   Player.move();
+  //fruit logic
+  fruitLogic();
+  //death logic
 }
 
 void gameOver() {
@@ -113,7 +120,7 @@ void gameOver() {
 }
 
 void angleLogic() {
-  float angleLimit = 5;
+  float angleLimit = 4;
 
   float targetAngle = degrees(atan2(mouseY - playerHeadY, mouseX - playerHeadX));
 
@@ -133,6 +140,50 @@ void angleLogic() {
   playerAngle += angleDiff;
 }
 
+void fruitLogic() {
+  //check if fruit exists
+  if(!fruitExists)
+  {
+    fruitCoords = spawnFruit();
+  }
+  else
+  {
+  //else check if player is at fruit
+    //if player is at fruit adjust size
+      //if size is correct adjust maxAngle and playerSlowness
+  }
+  GameGraph.fill(0, 255, 0);
+  GameGraph.ellipse(fruitCoords[0], fruitCoords[1], playerBallSize / 2, playerBallSize / 2);
+  GameGraph.fill(255, 255, 255);
+}
+
+float[] spawnFruit() {
+  //get random coords
+  float randomX = random(playerBallSize + 5, width - (playerBallSize + 5));
+  float randomY = random(playerBallSize + 5, height - (playerBallSize + 5));
+  
+  float[] fruitCoord = {randomX, randomY};
+  
+  boolean insidePlayer = false;
+  //check if coords are not in player
+  for(int i = 0; i <= Player.playerBody.size() - 1; i++) 
+  {
+   PlayerBody currentBody = Player.playerBody.get(i); 
+  float dx = randomX - currentBody.xPos;
+  float dy = randomY - currentBody.yPos;
+  float distanceSq = dx * dx + dy * dy;
+  
+  if(distanceSq <= playerBallSize * playerBallSize) insidePlayer = true;
+  }
+  
+  //repeat if fruit is inside player
+  if(insidePlayer) fruitCoord = spawnFruit();
+  
+  fruitExists = true;
+  
+  return fruitCoord;
+}
+
 class PlayerSnake {
   ArrayList<Points> playerPoints = new ArrayList<Points>(); //1 is tail end, last is movement point, second to last is head.
   ArrayList<PlayerBody> playerBody = new ArrayList<PlayerBody>();  //1 is head, last is tail end
@@ -144,7 +195,7 @@ class PlayerSnake {
     //initialize Points
     float x = playerHeadX - (tailSize + 1) * (playerBallSize / 2);
     float y = playerHeadY;
-    float pointCounter = (tailSize + 2) * playerSlowness;
+    float pointCounter = (tailSize + 1) * playerSlowness;
     println("x = " + x + " pointCounter = " + pointCounter);
     for (int i = 0; i <= pointCounter; i++)
     {
@@ -180,7 +231,7 @@ class PlayerSnake {
   }
   
   void trimOldPoints() {
-  int maxPoints = (tailSize + 2) * playerSlowness + 1;
+  int maxPoints = (tailSize + 1) * playerSlowness + 1;
 
   while (playerPoints.size() > maxPoints) {
     playerPoints.remove(0);
@@ -188,13 +239,13 @@ class PlayerSnake {
 }
   
   void move() {
-    for(int i = playerPoints.size() - 6; i >= 0; i -= playerSlowness)
+    for(int i = playerPoints.size() - playerSlowness - 1; i >= 0; i -= playerSlowness)
     {
       Points currentPoint = playerPoints.get(i);
       playerBody.add(new PlayerBody(currentPoint.xPos, currentPoint.yPos));
       
       playerTail(currentPoint.xPos, currentPoint.yPos);
-      if(i == playerPoints.size() - 6) { playerHeadX = currentPoint.xPos; playerHeadY = currentPoint.yPos; }
+      if(i == playerPoints.size() - playerSlowness - 1) { playerHeadX = currentPoint.xPos; playerHeadY = currentPoint.yPos; }
     }
     playerHead();
   }
