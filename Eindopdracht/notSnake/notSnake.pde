@@ -113,7 +113,24 @@ void gameOver() {
 }
 
 void angleLogic() {
-  
+  float angleLimit = 5;
+
+  float targetAngle = degrees(atan2(mouseY - playerHeadY, mouseX - playerHeadX));
+
+  // Normalize angles between 0–360
+  targetAngle = (targetAngle + 360) % 360;
+  playerAngle = (playerAngle + 360) % 360;
+
+  // Compute shortest signed angle difference for the shortest rotation
+  float angleDiff = targetAngle - playerAngle;
+  if (angleDiff > 180) angleDiff -= 360;
+  if (angleDiff < -180) angleDiff += 360;
+
+  //limit rotation speed
+  angleDiff = constrain(angleDiff, -angleLimit, angleLimit);
+
+  // Apply rotation
+  playerAngle += angleDiff;
 }
 
 class PlayerSnake {
