@@ -31,9 +31,10 @@ float playerHeadX;
 float playerHeadY;
 
 float playerAngle = 0;
-int playerSlowness = 5;
+int playerSlowness = 15;
 int playerBallSize = 40;
 float playerSpeed;
+float angleLimit = 4;
 
 PlayerSnake Player;
 
@@ -104,6 +105,7 @@ void initialize() {
 }
 
 void runGame() {
+   playerSpeed = playerBallSize / 1.5 / playerSlowness;
   //calculate playerAngle
   angleLogic();
   //calculate new point
@@ -120,8 +122,6 @@ void gameOver() {
 }
 
 void angleLogic() {
-  float angleLimit = 4;
-
   float targetAngle = degrees(atan2(mouseY - playerHeadY, mouseX - playerHeadX));
 
   // Normalize angles between 0–360
@@ -140,6 +140,7 @@ void angleLogic() {
   playerAngle += angleDiff;
 }
 
+int goalIndex = 0;
 void fruitLogic() {
   //check if fruit exists
   if(!fruitExists)
@@ -149,8 +150,25 @@ void fruitLogic() {
   else
   {
   //else check if player is at fruit
+  float dx = fruitCoords[0] - playerHeadX;
+  float dy = fruitCoords[1] - playerHeadY;
+  float distanceSq = dx * dx + dy * dy;
+  
+   if(distanceSq <= playerBallSize * playerBallSize)
+   {
     //if player is at fruit adjust size
-      //if size is correct adjust maxAngle and playerSlowness
+    Player.tailSize += 5;
+    fruitExists = false;
+   }
+   
+   int[] goals = {10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150};
+   //if size is correct adjust maxAngle and playerSlowness
+   if(Player.tailSize == goals[goalIndex])
+   {
+    playerSlowness--;
+    println(Player.tailSize + " " + goals[goalIndex] + " " + goalIndex);
+    goalIndex++;
+   }
   }
   GameGraph.fill(0, 255, 0);
   GameGraph.ellipse(fruitCoords[0], fruitCoords[1], playerBallSize / 2, playerBallSize / 2);
@@ -190,7 +208,7 @@ class PlayerSnake {
   int tailSize = 5;
   
   void spawn() {
-    tailSize = 5;
+    tailSize = 10;
     
     //initialize Points
     float x = playerHeadX - (tailSize + 1) * (playerBallSize / 2);
