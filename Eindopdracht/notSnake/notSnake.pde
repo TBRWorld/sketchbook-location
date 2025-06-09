@@ -98,14 +98,15 @@ void initialize() {
   playerAngle = 0;
   playerHeadX = width/2;
   playerHeadY = height/2;
-  playerSpeed = playerBallSize / 1.5 / playerSlowness;
+  playerSpeed = playerBallSize * 0.5 / playerSlowness;
   
   Player.spawn();
   start = false;
 }
 
 void runGame() {
-   playerSpeed = playerBallSize / 1.5 / playerSlowness;
+  playerSpeed = playerBallSize * 0.5 / playerSlowness;
+  //println("Distance: " + (playerSpeed * playerSlowness));
   //calculate playerAngle
   angleLogic();
   //calculate new point
@@ -157,7 +158,7 @@ void fruitLogic() {
    if(distanceSq <= playerBallSize * playerBallSize)
    {
     //if player is at fruit adjust size
-    Player.tailSize += 5;
+    Player.tailSize += 1;
     fruitExists = false;
    }
    
@@ -166,6 +167,7 @@ void fruitLogic() {
    if(Player.tailSize == goals[goalIndex])
    {
     playerSlowness--;
+    playerSpeed = playerBallSize * 0.5 / playerSlowness;
     println(Player.tailSize + " " + goals[goalIndex] + " " + goalIndex);
     goalIndex++;
    }
@@ -208,7 +210,7 @@ class PlayerSnake {
   int tailSize = 5;
   
   void spawn() {
-    tailSize = 10;
+    tailSize = 5;
     
     //initialize Points
     float x = playerHeadX - (tailSize + 1) * (playerBallSize / 2);
@@ -218,23 +220,25 @@ class PlayerSnake {
     for (int i = 0; i <= pointCounter; i++)
     {
       playerPoints.add(new Points(x, y));
-      println("i:" + i + " x:" + x);
-      x += playerSpeed;
+      float[] offset = direction(playerAngle, playerSpeed);
+      x += offset[0];
+      y += offset[1];
     }
     
     //initialize player 
     for(int i = playerPoints.size() - playerSlowness - 1; i >= 0; i -= playerSlowness)
     {      
       Points currentPoint = playerPoints.get(i);
-      playerBody.add(new PlayerBody(currentPoint.xPos, currentPoint.yPos));
+      playerBody.add(new PlayerBody(currentPoint.xPos, currentPoint.yPos, i));
       
-      println("playerBody[" + i + "]: xy: " + currentPoint.xPos + ", " + currentPoint.yPos);
+      println("playerBody[" + playerPoints.get(i) + "]: xy: " + currentPoint.xPos + ", " + currentPoint.yPos);
       playerTail(currentPoint.xPos, currentPoint.yPos);
     }
     playerHead();
   }
   
   void newPoints() {
+    println("playerSpeed: " + playerSpeed + " | slowness: " + playerSlowness);
     //fetch last point
     Points currentPoint = playerPoints.get(playerPoints.size()-1);
     
@@ -257,16 +261,66 @@ class PlayerSnake {
 }
   
   void move() {
-    for(int i = playerPoints.size() - playerSlowness - 1; i >= 0; i -= playerSlowness)
+    println("MOVE using slowness = " + playerSlowness + " -> expected spacing: " + playerSpeed * playerSlowness);
+    ArrayList<PlayerBody> currentBody = new ArrayList<PlayerBody>();    
+    currentBody.addAll(playerBody);
+    playerBody.clear(); //clear for performance
+    
+    if(currentBody.size() <= tailSize+1)
     {
-      Points currentPoint = playerPoints.get(i);
-      playerBody.add(new PlayerBody(currentPoint.xPos, currentPoint.yPos));
+      println("true " + currentBody.size());
+      ArrayList<PlayerBody> tempBody = new ArrayList<PlayerBody>();
+      int lastIndex = 0;
       
-      playerTail(currentPoint.xPos, currentPoint.yPos);
-      if(i == playerPoints.size() - playerSlowness - 1) { playerHeadX = currentPoint.xPos; playerHeadY = currentPoint.yPos; }
+      //change pointIndex of every PlayerBody part
+      for (int i = 0; i < currentBody.size(); i++) {
+        int newPointIndex;
+  
+        if (i == 0) {
+          // Head: latest point
+          newPointIndex = playerPoints.size() - playerSlowness - 1;
+        } else {
+          // Tail: offset by i * slowness
+          newPointIndex = currentBody.get(i - 1).pointIndex;
+        }
+
+      // Clamp to prevent out-of-bounds
+      newPointIndex = max(0, min(newPointIndex, playerPoints.size() - 1));
+
+      tempBody.add(new PlayerBody(currentBody.get(i).xPos, currentBody.get(i).yPos, newPointIndex));
+    }
+      
+      //add new ball
+      int lastBallInt = currentBody.size() - 1;
+      tempBody.add(new PlayerBody(currentBody.get(lastBallInt).xPos, currentBody.get(lastBallInt).yPos, lastIndex));
+      
+      currentBody.clear();
+      currentBody.addAll(tempBody);
+      tempBody.clear();
+    }
+
+        for (int i = 0; i <= tailSize; i++) {
+        int pointIndex = currentBody.get(i).pointIndex;
+        Points p = playerPoints.get(pointIndex);
+               
+        playerBody.add(new PlayerBody(p.xPos, p.yPos, pointIndex)); //xPos and yPos adjusted using pointIndex
+      
+        // draw
+        if (i == 0) {
+          playerHeadX = p.xPos;
+          playerHeadY = p.yPos;
+        }
+      playerTail(p.xPos, p.yPos);
     }
     playerHead();
-  }
+    
+    float dx = playerBody.get(1).xPos - playerBody.get(2).xPos;
+    float dy = playerBody.get(1).yPos - playerBody.get(2).yPos;
+    float delta = sqrt(dx*dx + dy*dy);
+    println("spacing: " + delta);
+    
+    currentBody.clear();
+}
 
   void playerHead() {
     GameGraph.fill(255, 1, 1);
@@ -292,10 +346,12 @@ class Points {
 class PlayerBody {
  float xPos;
  float yPos;
+ int pointIndex;
  
- PlayerBody(float xPos, float yPos) {
+ PlayerBody(float xPos, float yPos, int pointIndex) {
   this.xPos = xPos;
   this.yPos = yPos;
+  this.pointIndex = pointIndex;
  } 
 }
 
