@@ -318,7 +318,7 @@ void changeSize() {
   // 6. Clone existing points and add new stationary ones at tail
   ArrayList<Points> newPoints = new ArrayList<Points>(playerPoints);
   for (int i = 0; i <= deltaIndex; i++) {
-    newPoints.add(newPoints.size() - 1, new Points(x, y)); // insert at tail (start of list)
+    newPoints.add(0, new Points(x, y)); // insert at tail (start of list)
   }
 
   // 7. Replace old points list
